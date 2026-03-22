@@ -4,13 +4,19 @@ Trabalho de modelagem e previsão da série temporal referente ao custo mensal c
 
 **Autores:** Matheus de Moraes Neves e Eduardo Henrique de Souza Dias
 
----
-
 ## Sobre o projeto
 
 Os dados foram extraídos do [Portal da Transparência de Uberlândia](https://www.uberlandia.mg.gov.br/portal-da-transparencia/dados-abertos/catalogo-de-dados-abertos/) e cobrem o período de janeiro de 2021 a outubro de 2025, totalizando 58 observações mensais. A variável analisada é o custo bruto com servidores contratados, deflacionada pelo IPCA com base em outubro de 2025, de modo a isolar o crescimento real dos gastos dos efeitos nominais da inflação.
 
 A série apresenta três características marcantes: uma tendência de crescimento expressivo entre 2021 e 2023 com posterior estabilização, uma sazonalidade anual muito forte (com quedas drásticas em janeiro, mês de encerramento e renovação de contratos temporários) e heterocedasticidade, com variância crescendo junto com o nível da série.
+
+## Tratamento dos dados
+
+O dado bruto vem do Portal da Transparência no formato de relatório: cada aba corresponde a um ano e setor (Geral ou Educação), e dentro de cada aba as variáveis ficam nas linhas e os meses nas colunas, o chamado formato transposto. Chegar no CSV final exigiu duas etapas distintas.
+
+A primeira foi manual, feita no Excel. Como o relatório cresceu ao longo dos anos, cada aba tinha um número diferente de indicadores. Foi necessário criar uma estrutura unificada com todos os indicadores presentes em qualquer ano e reaplicá-la em todas as abas para garantir que tivessem exatamente as mesmas linhas na mesma ordem. Com isso padronizado, as abas foram consolidadas em um único dataframe e transpostas para o formato analítico padrão (uma linha por mês, uma coluna por variável), gerando a `matriz_transposta.csv`.
+
+A segunda etapa foi o script `tratamento_dados.R`, que recebe essa matriz e faz o tratamento de tipos: converte a coluna de data, parseia as colunas monetárias que chegam como texto com formatação brasileira (ponto como separador de milhar, vírgula como decimal) e substitui NAs por zero, respeitando o critério de só fazer essa substituição em anos que tenham ao menos uma observação válida na coluna. O resultado é exportado como `dados_prefeitura_limpos_final.csv`.
 
 ## Metodologia
 
@@ -30,7 +36,7 @@ O processo seguiu as etapas clássicas de Box-Jenkins:
 
 | Coeficiente | Estimativa | Erro Padrão |
 |---|---|---|
-| ma1 (θ₁) | −0,5885 | 0,1142 |
+| ma1 (θ₁) | -0,5885 | 0,1142 |
 | sma1 (Θ₁) | 0,6412 | 0,3495 |
 
 O modelo foi selecionado com AICc de 428,05, mais de 120 pontos abaixo dos modelos alternativos sem diferenciação sazonal. O teste de Ljung-Box (Q* = 6,23, p-valor = 0,796) confirmou ausência de autocorrelação serial nos resíduos. A não-normalidade dos resíduos (Shapiro-Wilk, p ≈ 0), reflexo das quedas abruptas em janeiro, implica cautela na interpretação dos intervalos de predição, sem comprometer a validade das estimativas pontuais.
@@ -53,12 +59,13 @@ O modelo projeta a manutenção do padrão histórico: queda acentuada em janeir
 
 ```
 .
-├── script_analise.R             # Script completo em R
+├── tratamento_dados.R           # Limpeza e tipagem da matriz transposta
+├── script_analise.R             # Modelagem e previsão da série temporal
 ├── analisefinal_MatheusEdu.pdf  # Relatório completo do trabalho
 └── README.md
 ```
 
-> O arquivo de dados (`dados_prefeitura_limpos_final.csv`) não está versionado no repositório. Os dados brutos estão disponíveis no Portal da Transparência da Prefeitura de Uberlândia.
+> Os arquivos de dados (`matriz_transposta.csv` e `dados_prefeitura_limpos_final.csv`) não estão versionados no repositório. Os dados brutos estão disponíveis no Portal da Transparência da Prefeitura de Uberlândia.
 
 ## Dependências
 
