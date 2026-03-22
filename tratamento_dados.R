@@ -7,7 +7,7 @@ library(stringr)
 # --- Leitura ---
 
 dados = read_csv(
-  "dados_brutos.csv",
+  "matriz_transposta.csv",
   locale = locale(grouping_mark = ".", decimal_mark = ",")
 )
 
